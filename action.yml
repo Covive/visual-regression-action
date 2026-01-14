@@ -154,23 +154,6 @@ runs:
         echo ""
         echo "✅ Visual regression tests complete!"
 
-    - name: Upload diff images
-      shell: bash
-      working-directory: ${{ github.action_path }}
-      env:
-        GITHUB_TOKEN: ${{ inputs.github-token }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
-        PR_NUMBER: ${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number }}
-        GITHUB_RUN_ID: ${{ github.run_id }}
-      run: |
-        if [ -z "$PR_NUMBER" ]; then
-          echo "⚠️ No PR number found, skipping image upload"
-          exit 0
-        fi
-        
-        echo "📤 Uploading diff images for inline display..."
-        node scripts/upload-images.mjs || echo "⚠️ Image upload failed, continuing anyway"
-
     - name: Post PR comment
       shell: bash
       working-directory: ${{ github.action_path }}
