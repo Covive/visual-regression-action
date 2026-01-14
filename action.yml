@@ -1,0 +1,187 @@
+name: 'Visual Regression Testing'
+description: 'Automated visual regression testing - compare multi-dev vs LIVE site and post results to PR'
+author: 'Your Organization'
+
+branding:
+  icon: 'camera'
+  color: 'purple'
+
+inputs:
+  live-url:
+    description: 'LIVE site base URL (e.g., https://mtc.ca.gov)'
+    required: true
+  
+  multidev-url:
+    description: 'Multi-dev environment URL to test (e.g., https://pr123-mtc.pantheonsite.io)'
+    required: true
+  
+  project-name:
+    description: 'Project identifier (e.g., mtc, pba, abag)'
+    required: true
+  
+  urls-file:
+    description: 'Path to urls.json file relative to repository root'
+    required: false
+    default: './regression-testing/urls.json'
+  
+  github-token:
+    description: 'GitHub token for posting PR comments (use secrets.GITHUB_TOKEN)'
+    required: true
+  
+  diff-threshold:
+    description: 'Pixelmatch threshold (0-1, default: 0.1)'
+    required: false
+    default: '0.1'
+
+outputs:
+  summary-json:
+    description: 'Path to generated summary.json file'
+    value: ${{ steps.run-tests.outputs.summary-path }}
+  
+  artifact-name:
+    description: 'Name of uploaded artifact containing screenshots'
+    value: ${{ inputs.project-name }}-visual-regression-${{ github.run_number }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: ${{ github.action_path }}/package-lock.json
+
+    - name: Install action dependencies
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}
+        echo "📦 Installing visual regression dependencies..."
+        npm ci --prefer-offline --no-audit
+
+    - name: Install Playwright browsers
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}
+        echo "🎭 Installing Playwright Chromium..."
+        npx playwright install --with-deps chromium
+
+    - name: Verify URLs file exists
+      shell: bash
+      run: |
+        URLS_FILE="${{ github.workspace }}/${{ inputs.urls-file }}"
+        if [ ! -f "$URLS_FILE" ]; then
+          echo "❌ Error: URLs file not found at $URLS_FILE"
+          echo "Expected location: ${{ inputs.urls-file }}"
+          echo "Please create this file with your test URLs."
+          exit 1
+        fi
+        echo "✅ Found URLs file: $URLS_FILE"
+
+    - name: Wait for multidev to be ready
+      shell: bash
+      run: |
+        echo "⏳ Waiting for multidev environment to be ready..."
+        echo "Testing URL: ${{ inputs.multidev-url }}"
+        
+        for i in {1..30}; do
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${{ inputs.multidev-url }}" 2>/dev/null || echo "000")
+          
+          if [[ "$HTTP_CODE" =~ ^(200|301|302|403)$ ]]; then
+            echo "✅ Multidev is ready! (HTTP $HTTP_CODE)"
+            exit 0
+          fi
+          
+          echo "Attempt $i/30: HTTP $HTTP_CODE - Waiting 10s..."
+          sleep 10
+        done
+        
+        echo "❌ Multidev failed to become ready after 5 minutes"
+        echo "Last HTTP code: $HTTP_CODE"
+        echo "URL: ${{ inputs.multidev-url }}"
+        exit 1
+
+    - name: Run visual regression tests
+      id: run-tests
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        LIVE_URL: ${{ inputs.live-url }}
+        MULTIDEV_URL: ${{ inputs.multidev-url }}
+        PROJECT: ${{ inputs.project-name }}
+        URLS_PATH: ${{ github.workspace }}/${{ inputs.urls-file }}
+        DIFF_THRESHOLD: ${{ inputs.diff-threshold }}
+      run: |
+        echo "🚀 Starting visual regression tests for $PROJECT"
+        echo "📊 Configuration:"
+        echo "   LIVE URL: $LIVE_URL"
+        echo "   MULTIDEV URL: $MULTIDEV_URL"
+        echo "   URLs file: $URLS_PATH"
+        
+        # Create workspace directories
+        mkdir -p baselines artifacts/{current,diffs,report} reports
+        
+        # Capture LIVE site (baseline)
+        echo ""
+        echo "📸 Step 1/4: Capturing LIVE site screenshots..."
+        BASE_URL="$LIVE_URL" node scripts/capture.mjs
+        cp -r artifacts/current/* baselines/
+        echo "   Baseline screenshots saved to baselines/"
+        
+        # Capture MULTIDEV site
+        echo ""
+        echo "📸 Step 2/4: Capturing MULTIDEV site screenshots..."
+        rm -rf artifacts/current
+        mkdir -p artifacts/current
+        BASE_URL="$MULTIDEV_URL" node scripts/capture.mjs
+        echo "   Multidev screenshots saved to artifacts/current/"
+        
+        # Run comparison
+        echo ""
+        echo "🔍 Step 3/4: Comparing screenshots..."
+        node scripts/diff.mjs
+        echo "   Diff images saved to artifacts/diffs/"
+        
+        # Generate reports
+        echo ""
+        echo "📊 Step 4/4: Generating reports..."
+        node scripts/report.mjs
+        
+        # Set output
+        SUMMARY_PATH="${{ github.action_path }}/artifacts/report/summary.json"
+        echo "summary-path=$SUMMARY_PATH" >> $GITHUB_OUTPUT
+        
+        echo ""
+        echo "✅ Visual regression tests complete!"
+
+    - name: Post PR comment
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        PR_NUMBER: ${{ github.event.pull_request.number || github.event.workflow_run.pull_requests[0].number }}
+        MULTIDEV_URL: ${{ inputs.multidev-url }}
+        LIVE_URL: ${{ inputs.live-url }}
+        PROJECT: ${{ inputs.project-name }}
+        GITHUB_RUN_ID: ${{ github.run_id }}
+      run: |
+        if [ -z "$PR_NUMBER" ]; then
+          echo "⚠️ No PR number found, skipping comment"
+          exit 0
+        fi
+        
+        echo "💬 Posting results to PR #$PR_NUMBER..."
+        node scripts/post-pr-comment.mjs
+        echo "✅ Comment posted!"
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: ${{ inputs.project-name }}-visual-regression-${{ github.run_number }}
+        path: |
+          ${{ github.action_path }}/artifacts/
+          ${{ github.action_path }}/baselines/
+          ${{ github.action_path }}/reports/
+        retention-days: 30

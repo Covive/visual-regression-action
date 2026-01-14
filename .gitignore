@@ -1,0 +1,10 @@
+node_modules/
+artifacts/
+baselines/
+reports/
+*.log
+.DS_Store
+package-lock.json
+.env
+.vscode/
+.idea/
