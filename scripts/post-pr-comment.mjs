@@ -81,8 +81,7 @@ function generateComment(summary) {
         if (failedUrls.length > 0) {
             comment += `#### ❌ Failed (${failedUrls.length})\n`;
             failedUrls.forEach(url => {
-                const multidevPageUrl = url.url.replace(LIVE_URL, MULTIDEV_URL);
-                comment += `- **${url.name}** - [View on Multidev](${multidevPageUrl})\n`;
+                comment += `- **${url.name}**\n`;
                 if (url.error) {
                     comment += `  \`\`\`\n  ${url.error}\n  \`\`\`\n`;
                 }
@@ -94,9 +93,7 @@ function generateComment(summary) {
             comment += `#### ⚠️ Visual Changes Detected (${changedUrls.length})\n`;
             changedUrls.forEach(url => {
                 const diffPercent = url.diffPercent ? `${url.diffPercent.toFixed(2)}%` : 'N/A';
-                const multidevPageUrl = url.url.replace(LIVE_URL, MULTIDEV_URL);
-
-                comment += `- **${url.name}** (${diffPercent} difference) - [View on Multidev](${multidevPageUrl})\n`;
+                comment += `- **${url.name}** (${diffPercent} difference)\n`;
             });
             comment += `\n`;
         }
