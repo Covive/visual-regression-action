@@ -2,7 +2,7 @@
 
 ## What I Just Built For You
 
-I've created a **complete composite action** at `/Work/MTC/visual-regression-action/`:
+I've created a **complete composite action** at `/Work/covive/visual-regression-action/`:
 
 ```
 visual-regression-action/
@@ -24,7 +24,7 @@ visual-regression-action/
 ### Step 1: Publish the Action to GitHub (5 min)
 
 ```bash
-cd /Users/gustavorodiguezsalas/Work/MTC/visual-regression-action
+cd /Users/gustavorodiguezsalas/Work/covive/visual-regression-action
 
 # Create new GitHub repo (do this on GitHub.com first)
 # Name it: visual-regression-action
@@ -47,12 +47,12 @@ git push --tags
 
 ### Step 2: Add to Each Site Repo (2 min per site)
 
-For **EACH** of your 9 repos (mtc, pba, abag, etc.), add this workflow:
+For **EACH** of your 9 repos (covive, pba, abag, etc.), add this workflow:
 
-#### MTC Site Example
+#### covive Site Example
 
 ```bash
-cd /Users/gustavorodiguezsalas/Work/MTC
+cd /Users/gustavorodiguezsalas/Work/covive
 
 # Create workflow file
 mkdir -p .github/workflows
@@ -87,9 +87,9 @@ jobs:
       - name: Run visual regression
         uses: YOUR-ORG/visual-regression-action@v1
         with:
-          live-url: 'https://mtc.ca.gov'
-          multidev-url: 'https://${{ steps.pr.outputs.multidev }}-mtc-site.pantheonsite.io'
-          project-name: 'mtc'
+          live-url: 'https://zerowastesv.org'
+          multidev-url: 'https://${{ steps.pr.outputs.multidev }}-covive-site.pantheonsite.io'
+          project-name: 'covive'
           urls-file: './regression-testing/urls.json'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 EOF
@@ -106,16 +106,16 @@ git push
 
 Each site just needs a `urls.json` file:
 
-### MTC: `regression-testing/urls.json`
+### covive: `regression-testing/urls.json`
 ```json
 [
   {
     "name": "Homepage",
-    "url": "https://mtc.ca.gov"
+    "url": "https://zerowastesv.org"
   },
   {
     "name": "About",
-    "url": "https://mtc.ca.gov/about"
+    "url": "https://zerowastesv.org/about"
   }
 ]
 ```
@@ -162,11 +162,11 @@ Each site just needs a `urls.json` file:
     github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-### MTC
+### covive
 ```yaml
-live-url: 'https://mtc.ca.gov'
-multidev-url: 'https://${{ steps.pr.outputs.multidev }}-mtc-site.pantheonsite.io'
-project-name: 'mtc'
+live-url: 'https://zerowastesv.org'
+multidev-url: 'https://${{ steps.pr.outputs.multidev }}-covive-site.pantheonsite.io'
+project-name: 'covive'
 ```
 
 ### PBA
@@ -232,15 +232,15 @@ project-name: 'vs'
 ### Updating the Action (Once for All Sites)
 
 ```bash
-cd /Users/gustavorodiguezsalas/Work/MTC/visual-regression-action
+cd /Users/gustavorodiguezsalas/Work/covive/visual-regression-action
 
 # Make changes to scripts
 nano scripts/capture.mjs
 
 # Test locally
-export LIVE_URL=https://mtc.ca.gov
-export MULTIDEV_URL=https://dev-mtc.pantheonsite.io
-export PROJECT=mtc
+export LIVE_URL=https://zerowastesv.org
+export MULTIDEV_URL=https://dev-covive.pantheonsite.io
+export PROJECT=covive
 export URLS_PATH=/path/to/urls.json
 node scripts/capture.mjs
 
@@ -305,16 +305,16 @@ Sites using `@v1.0.0` stay on that specific version until manually updated.
 ###Test the Action Locally (Before Publishing)
 
 ```bash
-cd /Users/gustavorodiguezsalas/Work/MTC/visual-regression-action
+cd /Users/gustavorodiguezsalas/Work/covive/visual-regression-action
 
 # Install dependencies
 npm install
 
 # Run a test
-export LIVE_URL=https://mtc.ca.gov
-export MULTIDEV_URL=https://dev-mtc2.pantheonsite.io
+export LIVE_URL=https://zerowastesv.org
+export MULTIDEV_URL=https://dev-covive2.pantheonsite.io
 export PROJECT=test
-export URLS_PATH=../regression-testing/mtc/urls.json
+export URLS_PATH=../regression-testing/covive/urls.json
 
 node scripts/capture.mjs
 node scripts/diff.mjs
@@ -338,7 +338,7 @@ node scripts/report.mjs
 ## 📞 Next Steps
 
 1. **Publish the action repo** to GitHub
-2. **Pick one site** (recommend MTC) to test first
+2. **Pick one site** (recommend covive) to test first
 3. **Add workflow** to that site
 4. **Open a test PR** and verify it works
 5. **Replicate** to other 8 sites

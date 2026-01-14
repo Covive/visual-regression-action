@@ -8,15 +8,15 @@ branding:
 
 inputs:
   live-url:
-    description: 'LIVE site base URL (e.g., https://mtc.ca.gov)'
+    description: 'LIVE site base URL (e.g., https://zerowastesv.org)'
     required: true
   
   multidev-url:
-    description: 'Multi-dev environment URL to test (e.g., https://pr123-mtc.pantheonsite.io)'
+    description: 'Multi-dev environment URL to test (e.g., https://pr123-covive.pantheonsite.io)'
     required: true
   
   project-name:
-    description: 'Project identifier (e.g., mtc, pba, abag)'
+    description: 'Project identifier (e.g., covive, pba, abag)'
     required: true
   
   urls-file:

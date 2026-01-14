@@ -49,9 +49,9 @@ jobs:
       - name: Run visual regression tests
         uses: your-org/visual-regression-action@v1
         with:
-          live-url: 'https://mtc.ca.gov'
-          multidev-url: 'https://${{ steps.pr.outputs.multidev }}-mtc-site.pantheonsite.io'
-          project-name: 'mtc'
+          live-url: 'https://zerowastesv.org'
+          multidev-url: 'https://${{ steps.pr.outputs.multidev }}-covive-site.pantheonsite.io'
+          project-name: 'covive'
           urls-file: './regression-testing/urls.json'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -62,11 +62,11 @@ jobs:
 [
   {
     "name": "Homepage",
-    "url": "https://mtc.ca.gov"
+    "url": "https://zerowastesv.org"
   },
   {
     "name": "About Page",
-    "url": "https://mtc.ca.gov/about"
+    "url": "https://zerowastesv.org/about"
   }
 ]
 ```
@@ -77,7 +77,7 @@ jobs:
 |-------|----------|---------|-------------|
 | `live-url` | Yes | - | Production site URL (baseline) |
 | `multidev-url` | Yes | - | Multi-dev environment URL to test |
-| `project-name` | Yes | - | Project identifier (e.g., mtc) |
+| `project-name` | Yes | - | Project identifier (e.g., covive) |
 | `urls-file` | No | `./regression-testing/urls.json` | Path to URLs configuration |
 | `github-token` | Yes | - | GitHub token for PR comments |
 | `diff-threshold` | No | `0.1` | Pixelmatch threshold (0-1) |
@@ -101,10 +101,10 @@ jobs:
 ## Example PR Comment
 
 ```markdown
-## 📸 Visual Regression Test Results - MTC
+## 📸 Visual Regression Test Results - covive
 
-**Environment:** https://pr123-mtc-site.pantheonsite.io
-**Baseline:** https://mtc.ca.gov
+**Environment:** https://pr123-covive-site.pantheonsite.io
+**Baseline:** https://zerowastesv.org
 
 ### 📊 Summary
 | Status | Count |
@@ -137,9 +137,9 @@ We use semantic versioning:
 npm install
 
 # Run tests locally
-export LIVE_URL=https://mtc.ca.gov
-export MULTIDEV_URL=https://dev-mtc.pantheonsite.io
-export PROJECT=mtc
+export LIVE_URL=https://zerowastesv.org
+export MULTIDEV_URL=https://dev-covive.pantheonsite.io
+export PROJECT=covive
 export URLS_PATH=./test-urls.json
 
 node scripts/capture.mjs

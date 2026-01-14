@@ -20,7 +20,7 @@ const urlsPath = process.env.URLS_PATH
 const urls = JSON.parse(await readFile(urlsPath, 'utf-8'));
 
 // ---------- BASE_URL override support ----------
-// Usage: BASE_URL=https://pr123-mtc.pantheonsite.io npm run capture:mtc
+// Usage: BASE_URL=https://pr123-covive.pantheonsite.io npm run capture:covive
 const BASE_URL = process.env.BASE_URL || null;
 
 function buildTestUrl(originalUrl, baseUrl) {
