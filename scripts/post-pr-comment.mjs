@@ -47,8 +47,23 @@ function readResults() {
     return defaultSummary;
 }
 
+// ---------- Read uploaded image URLs ----------
+function readImageUrls() {
+    const urlsPath = path.join(__dirname, '..', 'artifacts', 'image-urls.json');
+
+    try {
+        if (fs.existsSync(urlsPath)) {
+            return JSON.parse(fs.readFileSync(urlsPath, 'utf8'));
+        }
+    } catch (error) {
+        console.warn(`⚠️  Could not read image URLs: ${error.message}`);
+    }
+
+    return {};
+}
+
 // ---------- Generate markdown comment ----------
-function generateComment(summary) {
+function generateComment(summary, imageUrls = {}) {
     const { total, passed, changed, failed, urls = [] } = summary;
 
     const emoji = failed > 0 ? '❌' : changed > 0 ? '⚠️' : '✅';
@@ -93,7 +108,17 @@ function generateComment(summary) {
             comment += `#### ⚠️ Visual Changes Detected (${changedUrls.length})\n`;
             changedUrls.forEach(url => {
                 const diffPercent = url.diffPercent ? `${url.diffPercent.toFixed(2)}%` : 'N/A';
+                const slug = url.slug || url.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
                 comment += `- **${url.name}** (${diffPercent} difference) - [View URL](${url.url})\n`;
+
+                // Embed screenshot if available
+                if (imageUrls[slug]) {
+                    comment += `\n<details>\n<summary>📸 View Screenshot Comparison</summary>\n\n`;
+                    comment += `![Visual difference for ${url.name}](${imageUrls[slug]})\n\n`;
+                    comment += `*Red areas indicate visual differences between baseline and current.*\n\n`;
+                    comment += `</details>\n\n`;
+                }
             });
             comment += `\n`;
         }
@@ -154,7 +179,8 @@ async function main() {
         console.log(`🚀 Generating visual regression report for ${PROJECT}...`);
 
         const summary = readResults();
-        const comment = generateComment(summary);
+        const imageUrls = readImageUrls();
+        const comment = generateComment(summary, imageUrls);
 
         await postComment(comment);
 
