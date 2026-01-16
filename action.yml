@@ -181,7 +181,7 @@ runs:
       with:
         name: ${{ inputs.project-name }}-visual-regression-${{ github.run_number }}
         path: |
-          ${{ github.action_path }}/artifacts/
-          ${{ github.action_path }}/baselines/
+          ${{ github.action_path }}/artifacts/diffs/
+          ${{ github.action_path }}/artifacts/report/
           ${{ github.action_path }}/reports/
-        retention-days: 30
+        retention-days: 1
